@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package dbservice;
+
+// Service definitions
+service DBService {
+  rpc Greet (Empty) returns (GreetResponse);
+
+  // User operations
+  rpc Register (RegisterRequest) returns (UserResponse);
+  rpc LoginUser  (LoginRequest) returns (TokenResponse);
+  rpc GetUser (UserRequest) returns (UserResponse);
+  rpc DeactivateUser (UserRequest) returns (GenericResponse);
+
+  // Product operations
+  rpc ListProducts (Empty) returns (ProductListResponse);
+  rpc GetProduct (ProductRequest) returns (ProductResponse);
+
+  // Order operations
+  rpc PlaceOrder (OrderRequest) returns (GenericResponse);
+  rpc CancelOrder (OrderRequest) returns (GenericResponse);
+  rpc GetOrder (OrderRequest) returns (OrderResponse);
+}
+
+// Message definitions
+message Empty {}
+
+message GreetResponse {
+  string message = 1;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string password = 2;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message UserRequest {
+  int32 user_id = 1;
+}
+
+message UserResponse {
+  int32 id = 1;
+  string username = 2;
+}
+
+message TokenResponse {
+  string token = 1;
+}
+
+message GenericResponse {
+  string message = 1;
+}
+
+message ProductRequest {
+  int32 product_id = 1;
+}
+
+message ProductResponse {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string category = 4;
+  double price = 5;
+  string slogan = 6;
+  int32 stock = 7;
+}
+
+message ProductListResponse {
+  repeated ProductResponse products = 1;
+}
+
+message OrderRequest {
+  int32 user_id = 1;
+  int32 product_id = 2;
+}
+
+message OrderResponse {
+  int32 order_id = 1;
+  string status = 2;
+}

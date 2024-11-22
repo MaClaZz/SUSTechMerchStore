@@ -1,0 +1,441 @@
+openapi: 3.0.1
+info:
+  description: "API for managing users, products, and orders with JWT authentication."
+  title: SUSTech Merch Store API
+  version: 1.0.0
+servers:
+- url: /
+paths:
+  /:
+    get:
+      description: Returns a welcome message at the base URL.
+      operationId: root_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__get_200_response'
+          description: A greeting message
+      summary: Greeting API
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /login:
+    post:
+      operationId: login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: "Successfully authenticated, token returned"
+        "401":
+          description: Unauthorized
+      summary: Authenticate and get a JWT token
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /orders:
+    post:
+      operationId: orders_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+        required: true
+      responses:
+        "201":
+          description: Order placed successfully
+        "400":
+          description: Bad Request - Invalid order data
+        "401":
+          description: Unauthorized - Missing or invalid JWT
+      security:
+      - BearerAuth: []
+      summary: Place a new order
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /orders/{orderId}:
+    delete:
+      operationId: orders_order_id_delete
+      parameters:
+      - explode: false
+        in: path
+        name: orderId
+        required: true
+        schema:
+          description: Order ID
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: Order canceled successfully
+        "401":
+          description: Unauthorized - Missing or invalid JWT
+        "404":
+          description: Order not found
+      security:
+      - BearerAuth: []
+      summary: Cancel an order
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    get:
+      operationId: orders_order_id_get
+      parameters:
+      - explode: false
+        in: path
+        name: orderId
+        required: true
+        schema:
+          description: Order ID
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: Order details
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+      summary: Get order details
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /products:
+    get:
+      operationId: products_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Product'
+                type: array
+          description: List of all available products.
+      summary: List all products
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /products/{productId}:
+    get:
+      operationId: products_product_id_get
+      parameters:
+      - explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          description: Product ID
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: Product details
+        "404":
+          description: Product not found
+      summary: Get details of a specific product
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /register:
+    post:
+      operationId: register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Registration failed
+      summary: Register a new user
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /users/{userId}:
+    get:
+      operationId: users_user_id_get
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          description: User ID
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: User details
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+      summary: Get user details
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    put:
+      operationId: users_user_id_put
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          description: User ID
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+        required: true
+      responses:
+        "200":
+          description: User updated successfully
+        "400":
+          description: Bad Request - Invalid data
+        "401":
+          description: Unauthorized - Missing or invalid JWT
+        "404":
+          description: User not found
+      security:
+      - BearerAuth: []
+      summary: Update user information
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /users/{userId}/deactivate:
+    post:
+      operationId: users_user_id_deactivate_post
+      parameters:
+      - explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          description: User ID
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: User deactivated successfully
+        "400":
+          description: Bad Request - Invalid data
+        "401":
+          description: Unauthorized - Missing or invalid JWT
+        "404":
+          description: User not found
+      security:
+      - BearerAuth: []
+      summary: Deactivate a user account
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+components:
+  schemas:
+    Product:
+      example:
+        price: 6.0274563
+        name: name
+        description: description
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 0
+        category: category
+        stock: 1
+        slogan: slogan
+      properties:
+        id:
+          title: id
+          type: integer
+        name:
+          title: name
+          type: string
+        description:
+          title: description
+          type: string
+        category:
+          title: category
+          type: string
+        price:
+          format: float
+          title: price
+          type: number
+        slogan:
+          title: slogan
+          type: string
+        stock:
+          title: stock
+          type: integer
+        created_at:
+          format: date-time
+          title: created_at
+          type: string
+      title: Product
+      type: object
+    RegisterRequest:
+      example:
+        password: password
+        email: email
+        sid: sid
+        username: username
+      properties:
+        sid:
+          title: sid
+          type: string
+        username:
+          title: username
+          type: string
+        email:
+          title: email
+          type: string
+        password:
+          format: password
+          title: password
+          type: string
+      required:
+      - password
+      - username
+      title: RegisterRequest
+      type: object
+    LoginRequest:
+      example:
+        password: password
+        username: username
+      properties:
+        username:
+          title: username
+          type: string
+        password:
+          format: password
+          title: password
+          type: string
+      required:
+      - password
+      - username
+      title: LoginRequest
+      type: object
+    LoginResponse:
+      example:
+        token: token
+      properties:
+        token:
+          description: JWT token returned to the client
+          title: token
+          type: string
+      title: LoginResponse
+      type: object
+    User:
+      example:
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 0
+        email: email
+        sid: sid
+        username: username
+      properties:
+        id:
+          title: id
+          type: integer
+        sid:
+          title: sid
+          type: string
+        username:
+          title: username
+          type: string
+        email:
+          title: email
+          type: string
+        created_at:
+          format: date-time
+          title: created_at
+          type: string
+      title: User
+      type: object
+    UserUpdate:
+      example:
+        password: password
+        email: email
+        sid: sid
+        username: username
+      properties:
+        sid:
+          title: sid
+          type: string
+        email:
+          title: email
+          type: string
+        username:
+          title: username
+          type: string
+        password:
+          title: password
+          type: string
+      title: UserUpdate
+      type: object
+    OrderRequest:
+      example:
+        quantity: 6
+        productId: 0
+      properties:
+        productId:
+          title: productId
+          type: integer
+        quantity:
+          title: quantity
+          type: integer
+      title: OrderRequest
+      type: object
+    Order:
+      example:
+        quantity: 5
+        productId: 1
+        total_price: 5.637377
+        user_id: 6
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 0
+      properties:
+        id:
+          title: id
+          type: integer
+        user_id:
+          title: user_id
+          type: integer
+        productId:
+          title: productId
+          type: integer
+        quantity:
+          title: quantity
+          type: integer
+        total_price:
+          format: float
+          title: total_price
+          type: number
+        created_at:
+          format: date-time
+          title: created_at
+          type: string
+      title: Order
+      type: object
+    __get_200_response:
+      example:
+        message: Welcome to the SUSTech Merch Store API!
+      properties:
+        message:
+          example: Welcome to the SUSTech Merch Store API!
+          title: message
+          type: string
+      title: __get_200_response
+      type: object
+  securitySchemes:
+    BearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+      x-bearerInfoFunc: openapi_server.controllers.security_controller.info_from_BearerAuth

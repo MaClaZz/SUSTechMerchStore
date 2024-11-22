@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+service LoggingService {
+  rpc LogOperation (stream LogMessage) returns (LogResponse);
+}
+
+message LogMessage {
+  string message = 1;
+  string timestamp = 2;
+}
+
+message LogResponse {
+  string confirmation = 1;
+}
