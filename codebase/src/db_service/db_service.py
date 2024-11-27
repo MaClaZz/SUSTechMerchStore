@@ -36,6 +36,45 @@ class DbServiceServicer(db_service_pb2_grpc.DBServiceServicer):
     def Greet(self, request, context):
         return db_service_pb2.GreetResponse(message="Welcome to the gRPC Service!")
 
+    def ListProducts(self, request, context):
+        conn = None
+        try:
+            conn = simple_pool.getconn()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM products;")
+                results = cursor.fetchall()
+                products = [db_service_pb2.ProductResponse(
+                    id=row[0], name=row[1], description=row[2], category=row[3],
+                    price=row[4], slogan=row[5], stock=row[6]) for row in results]
+            return db_service_pb2.ProductListResponse(products=products)
+        except psycopg2.DatabaseError as e:
+            context.set_details(f"Database error: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+        finally:
+            if conn:
+                simple_pool.putconn(conn)
+    def GetProduct(self, request, context):
+        conn = None
+        try:
+            conn = simple_pool.getconn()
+            # print(request.product_id)
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM products WHERE id = %s;", (request.product_id,))
+                result = cursor.fetchone()
+                if result:
+                    return db_service_pb2.ProductResponse(
+                    id=result[0], name=result[1], description=result[2], category=result[3],
+                    price=result[4], slogan=result[5], stock=result[6])
+                else:
+                    context.set_details("Product not found")
+                    context.set_code(grpc.StatusCode.NOT_FOUND)
+        except psycopg2.DatabaseError as e:
+            context.set_details(f"Database error: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+        finally:
+            if conn:
+                simple_pool.putconn(conn)
+
     def Register(self, request, context):
         conn = None
         try:
@@ -109,63 +148,52 @@ class DbServiceServicer(db_service_pb2_grpc.DBServiceServicer):
         finally:
             if conn:
                 simple_pool.putconn(conn)
-    def ListProducts(self, request, context):
-        conn = None
-        try:
-            conn = simple_pool.getconn()
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM products;")
-                results = cursor.fetchall()
-                products = [db_service_pb2.ProductResponse(
-                    id=row[0], name=row[1], description=row[2], category=row[3],
-                    price=row[4], slogan=row[5], stock=row[6]) for row in results]
-            return db_service_pb2.ProductListResponse(products=products)
-        except psycopg2.DatabaseError as e:
-            context.set_details(f"Database error: {str(e)}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-        finally:
-            if conn:
-                simple_pool.putconn(conn)
-    # return db_service_pb2.ProductListResponse(products=[
-    #         db_service_pb2.ProductResponse(id=p["id"], name=p["name"], price=p["price"])
-    #         for p in products_db
-    #     ])
-    # def GetProduct(self, request, context):
-    #     product = Product.query.get(request.product_id)
-    #     if product:
-    #         return db_service_pb2.ProductResponse(
-    #             id=product.id,
-    #             name=product.name,
-    #             price=str(product.price)
-    #         )
-    #     context.set_details('Product not found')
-    #     context.set_code(grpc.StatusCode.NOT_FOUND)
-    #     return db_service_pb2.ProductResponse()
 
-    def GetProduct(self, request, context):
+    def DeactivateUser(self, request, context):
         conn = None
         try:
             conn = simple_pool.getconn()
-            # print(request.product_id)
+            cursor = conn.cursor()
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM products WHERE id = %s;", (request.product_id,))
-                result = cursor.fetchone()
-                if result:
-                    return db_service_pb2.ProductResponse(
-                    id=result[0], name=result[1], description=result[2], category=result[3],
-                    price=result[4], slogan=result[5], stock=result[6])
-                else:
-                    context.set_details("Product not found")
-                    context.set_code(grpc.StatusCode.NOT_FOUND)
-        except psycopg2.DatabaseError as e:
-            context.set_details(f"Database error: {str(e)}")
-            context.set_code(grpc.StatusCode.INTERNAL)
+                cursor.execute("DELETE FROM users WHERE id = %s", (request.user_id,))
+                conn.commit()
+                return db_service_pb2.GenericResponse(message="User deactivated")#status="Success",
+        except Exception as e:
+            conn.rollback()
+            return db_service_pb2.GenericResponse(message=str(e))#status="Error",
         finally:
-            if conn:
-                simple_pool.putconn(conn)
+            cursor.close()
+            conn.close()
 
     # Implement other methods similarly...
 
+    def PlaceOrder(self, request, context):
+        # print(f"Placing order for user {request.user_id}, product {request.product_name}")
+        conn = None
+        try:
+            conn = simple_pool.getconn()
+            cursor = conn.cursor()
+            cursor.execute("SELECT price FROM products WHERE id = %s", (request.product_id,))
+            product = cursor.fetchone()
+            if not product:
+                return db_service_pb2.GenericResponse(message="Error: Product not found")#status="Error",
+
+            total_price = product[0] * request.quantity
+            print(request.user_id, request.product_id, request.quantity, total_price)
+            # Insert into orders table
+            cursor.execute("""
+                            INSERT INTO orders (user_id, product_id, quantity, total_price)
+                            VALUES (%s, %s, %s, %s)
+                        """, (request.user_id, request.product_id, request.quantity, total_price))
+
+            conn.commit()
+            return db_service_pb2.GenericResponse(message="Order placed successfully")
+        except Exception as e:
+            conn.rollback()
+            return db_service_pb2.GenericResponse(message=str(e))
+        finally:
+            cursor.close()
+            conn.close()
 # Server setup
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 db_service_pb2_grpc.add_DBServiceServicer_to_server(DbServiceServicer(), server)
