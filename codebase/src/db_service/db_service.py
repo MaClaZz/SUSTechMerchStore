@@ -192,8 +192,62 @@ class DbServiceServicer(db_service_pb2_grpc.DBServiceServicer):
             conn.rollback()
             return db_service_pb2.GenericResponse(message=str(e))
         finally:
-            cursor.close()
-            conn.close()
+            if conn:
+                simple_pool.putconn(conn)
+    # Server-side gRPC method for getting order details
+    def GetOrder(self, request, context):
+        # print(f"Getting order for user")
+        conn = None
+        try:
+            conn = simple_pool.getconn()
+            with conn.cursor() as cursor:
+                # Fetch the order details
+                cursor.execute("SELECT * FROM orders WHERE id = %s;", (request.order_id,))
+                order = cursor.fetchone()
+                print(order)
+                if order:
+                    return db_service_pb2.OrderResponse(order_id=order[0],
+                    user_id=order[1],
+                    product_id=order[2],
+                    quantity=order[3],
+                    total_price=order[4])
+                else:
+                    context.set_details("Order not found")
+                    context.set_code(grpc.StatusCode.NOT_FOUND)
+        except psycopg2.DatabaseError as e:
+            context.set_details(f"Database error: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+        finally:
+            if conn:
+                simple_pool.putconn(conn)
+
+    #     if not order:
+    #         return db_service_pb2.OrderResponse(
+    #             order_id=0, user_id=0, product_id=0, quantity=0, total_price=0.0
+    #         )  # Indicate no order found
+    #
+    #     # Return order details
+    #     return db_service_pb2.OrderResponse(
+    #         order_id=order[0],
+    #         user_id=order[1],
+    #         product_id=order[2],
+    #         quantity=order[3],
+    #         total_price=order[4]
+    #     )
+    #
+    # except Exception as e:
+    #     print(f"Error fetching order: {str(e)}")
+    #     context.set_code(grpc.StatusCode.INTERNAL)
+    #     context.set_details('Internal server error')
+    #     return db_service_pb2.OrderResponse()
+    #
+    # finally:
+    #     if cursor:
+    #         cursor.close()
+    #     if conn:
+    #         simple_pool.putconn(conn)
+
+
 # Server setup
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 db_service_pb2_grpc.add_DBServiceServicer_to_server(DbServiceServicer(), server)

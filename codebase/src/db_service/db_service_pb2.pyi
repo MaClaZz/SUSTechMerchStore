@@ -95,7 +95,7 @@ class ProductListResponse(_message.Message):
     products: _containers.RepeatedCompositeFieldContainer[ProductResponse]
     def __init__(self, products: _Optional[_Iterable[_Union[ProductResponse, _Mapping]]] = ...) -> None: ...
 
-class OrderRequest(_message.Message):
+class PlaceOrderRequest(_message.Message):
     __slots__ = ("user_id", "product_id", "quantity")
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     PRODUCT_ID_FIELD_NUMBER: _ClassVar[int]
@@ -104,6 +104,12 @@ class OrderRequest(_message.Message):
     product_id: int
     quantity: int
     def __init__(self, user_id: _Optional[int] = ..., product_id: _Optional[int] = ..., quantity: _Optional[int] = ...) -> None: ...
+
+class OrderRequest(_message.Message):
+    __slots__ = ("order_id",)
+    ORDER_ID_FIELD_NUMBER: _ClassVar[int]
+    order_id: int
+    def __init__(self, order_id: _Optional[int] = ...) -> None: ...
 
 class OrderResponse(_message.Message):
     __slots__ = ("order_id", "user_id", "product_id", "quantity", "total_price")

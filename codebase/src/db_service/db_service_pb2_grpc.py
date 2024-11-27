@@ -72,7 +72,7 @@ class DBServiceStub(object):
                 _registered_method=True)
         self.PlaceOrder = channel.unary_unary(
                 '/dbservice.DBService/PlaceOrder',
-                request_serializer=db__service__pb2.OrderRequest.SerializeToString,
+                request_serializer=db__service__pb2.PlaceOrderRequest.SerializeToString,
                 response_deserializer=db__service__pb2.GenericResponse.FromString,
                 _registered_method=True)
         self.CancelOrder = channel.unary_unary(
@@ -194,7 +194,7 @@ def add_DBServiceServicer_to_server(servicer, server):
             ),
             'PlaceOrder': grpc.unary_unary_rpc_method_handler(
                     servicer.PlaceOrder,
-                    request_deserializer=db__service__pb2.OrderRequest.FromString,
+                    request_deserializer=db__service__pb2.PlaceOrderRequest.FromString,
                     response_serializer=db__service__pb2.GenericResponse.SerializeToString,
             ),
             'CancelOrder': grpc.unary_unary_rpc_method_handler(
@@ -423,7 +423,7 @@ class DBService(object):
             request,
             target,
             '/dbservice.DBService/PlaceOrder',
-            db__service__pb2.OrderRequest.SerializeToString,
+            db__service__pb2.PlaceOrderRequest.SerializeToString,
             db__service__pb2.GenericResponse.FromString,
             options,
             channel_credentials,
