@@ -30,9 +30,10 @@ message GreetResponse {
 }
 
 message RegisterRequest {
-  string username = 1;
-  string password = 2;
-  string password = 2;
+  string sid = 1;
+  string username = 2;
+  string email = 3;
+  string password = 4;
 }
 
 message LoginRequest {
@@ -46,7 +47,9 @@ message UserRequest {
 
 message UserResponse {
   int32 id = 1;
-  string username = 2;
+  string sid = 2;
+  string username = 3;
+  string email = 4;
 }
 
 message TokenResponse {
@@ -78,9 +81,13 @@ message ProductListResponse {
 message OrderRequest {
   int32 user_id = 1;
   int32 product_id = 2;
+  int32 quantity = 3;
 }
 
 message OrderResponse {
   int32 order_id = 1;
-  string status = 2;
+  int32 user_id = 2;
+  int32 product_id = 3;
+  int32 quantity = 4;
+  double total_price=5;
 }

@@ -9,13 +9,23 @@ class Empty(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
+class GreetResponse(_message.Message):
+    __slots__ = ("message",)
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    message: str
+    def __init__(self, message: _Optional[str] = ...) -> None: ...
+
 class RegisterRequest(_message.Message):
-    __slots__ = ("username", "password")
+    __slots__ = ("sid", "username", "email", "password")
+    SID_FIELD_NUMBER: _ClassVar[int]
     USERNAME_FIELD_NUMBER: _ClassVar[int]
+    EMAIL_FIELD_NUMBER: _ClassVar[int]
     PASSWORD_FIELD_NUMBER: _ClassVar[int]
+    sid: str
     username: str
+    email: str
     password: str
-    def __init__(self, username: _Optional[str] = ..., password: _Optional[str] = ...) -> None: ...
+    def __init__(self, sid: _Optional[str] = ..., username: _Optional[str] = ..., email: _Optional[str] = ..., password: _Optional[str] = ...) -> None: ...
 
 class LoginRequest(_message.Message):
     __slots__ = ("username", "password")
@@ -32,12 +42,16 @@ class UserRequest(_message.Message):
     def __init__(self, user_id: _Optional[int] = ...) -> None: ...
 
 class UserResponse(_message.Message):
-    __slots__ = ("id", "username")
+    __slots__ = ("id", "sid", "username", "email")
     ID_FIELD_NUMBER: _ClassVar[int]
+    SID_FIELD_NUMBER: _ClassVar[int]
     USERNAME_FIELD_NUMBER: _ClassVar[int]
+    EMAIL_FIELD_NUMBER: _ClassVar[int]
     id: int
+    sid: str
     username: str
-    def __init__(self, id: _Optional[int] = ..., username: _Optional[str] = ...) -> None: ...
+    email: str
+    def __init__(self, id: _Optional[int] = ..., sid: _Optional[str] = ..., username: _Optional[str] = ..., email: _Optional[str] = ...) -> None: ...
 
 class TokenResponse(_message.Message):
     __slots__ = ("token",)
@@ -58,16 +72,22 @@ class ProductRequest(_message.Message):
     def __init__(self, product_id: _Optional[int] = ...) -> None: ...
 
 class ProductResponse(_message.Message):
-    __slots__ = ("id", "name", "description", "price")
+    __slots__ = ("id", "name", "description", "category", "price", "slogan", "stock")
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    CATEGORY_FIELD_NUMBER: _ClassVar[int]
     PRICE_FIELD_NUMBER: _ClassVar[int]
+    SLOGAN_FIELD_NUMBER: _ClassVar[int]
+    STOCK_FIELD_NUMBER: _ClassVar[int]
     id: int
     name: str
     description: str
+    category: str
     price: float
-    def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., description: _Optional[str] = ..., price: _Optional[float] = ...) -> None: ...
+    slogan: str
+    stock: int
+    def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., description: _Optional[str] = ..., category: _Optional[str] = ..., price: _Optional[float] = ..., slogan: _Optional[str] = ..., stock: _Optional[int] = ...) -> None: ...
 
 class ProductListResponse(_message.Message):
     __slots__ = ("products",)
@@ -76,17 +96,25 @@ class ProductListResponse(_message.Message):
     def __init__(self, products: _Optional[_Iterable[_Union[ProductResponse, _Mapping]]] = ...) -> None: ...
 
 class OrderRequest(_message.Message):
-    __slots__ = ("user_id", "product_id")
+    __slots__ = ("user_id", "product_id", "quantity")
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     PRODUCT_ID_FIELD_NUMBER: _ClassVar[int]
+    QUANTITY_FIELD_NUMBER: _ClassVar[int]
     user_id: int
     product_id: int
-    def __init__(self, user_id: _Optional[int] = ..., product_id: _Optional[int] = ...) -> None: ...
+    quantity: int
+    def __init__(self, user_id: _Optional[int] = ..., product_id: _Optional[int] = ..., quantity: _Optional[int] = ...) -> None: ...
 
 class OrderResponse(_message.Message):
-    __slots__ = ("order_id", "status")
+    __slots__ = ("order_id", "user_id", "product_id", "quantity", "total_price")
     ORDER_ID_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    PRODUCT_ID_FIELD_NUMBER: _ClassVar[int]
+    QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_PRICE_FIELD_NUMBER: _ClassVar[int]
     order_id: int
-    status: str
-    def __init__(self, order_id: _Optional[int] = ..., status: _Optional[str] = ...) -> None: ...
+    user_id: int
+    product_id: int
+    quantity: int
+    total_price: float
+    def __init__(self, order_id: _Optional[int] = ..., user_id: _Optional[int] = ..., product_id: _Optional[int] = ..., quantity: _Optional[int] = ..., total_price: _Optional[float] = ...) -> None: ...

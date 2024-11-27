@@ -1,8 +1,10 @@
+import bcrypt
 import grpc
 from concurrent import futures
 import time
 # from models import db, Product  # Import your SQLAlchemy models
 import psycopg2
+from flask_jwt_extended import create_access_token
 from psycopg2 import pool
 import os
 from pprint import pprint
@@ -10,6 +12,7 @@ from pprint import pprint
 # Import the generated classes
 import db_service_pb2
 import db_service_pb2_grpc
+from codebase.src.api_service.ClientStub import app
 
 # PostgreSQL connection pooling
 db_user = os.getenv("DB_USER", "dncc")
@@ -38,13 +41,16 @@ class DbServiceServicer(db_service_pb2_grpc.DBServiceServicer):
         try:
             conn = simple_pool.getconn()
             with conn.cursor() as cursor:
+                # Hash the password
+                # password_hash = bcrypt.hashpw(request.password.encode('utf-8'), bcrypt.gensalt())
                 cursor.execute(
-                    "INSERT INTO users (username, password) VALUES (%s, %s) RETURNING id;",
-                    (request.username, request.password)
+                    "INSERT INTO users (sid, username, email, password_hash) "
+                    "VALUES (%s, %s, %s, %s) RETURNING id;",
+                    (request.sid, request.username, request.email, request.password)
                 )
                 user_id = cursor.fetchone()[0]
                 conn.commit()
-                return db_service_pb2.UserResponse(id=user_id, username=request.username)
+                return db_service_pb2.UserResponse(id=user_id, sid=request.sid, username=request.username, email=request.email)
         except psycopg2.DatabaseError as e:
             context.set_details(f"Database error: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
@@ -52,6 +58,39 @@ class DbServiceServicer(db_service_pb2_grpc.DBServiceServicer):
             if conn:
                 simple_pool.putconn(conn)
 
+    def LoginUser(self, request, context):
+        conn = None
+        try:
+            conn = simple_pool.getconn()
+            with conn.cursor() as cursor:
+                # Check if the user exists
+                cursor.execute("SELECT id, password_hash FROM users WHERE username = %s;", (request.username,))
+                user = cursor.fetchone()
+                if user is None:
+                    context.set_details("Invalid username or password.")
+                    context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+                    return db_service_pb2.TokenResponse(token="")
+                # Verify the password
+                user_id, stored_password_hash = user
+                # print(bcrypt.checkpw(request.password.encode(), stored_password_hash.encode()))
+                if not bcrypt.checkpw(request.password.encode(), stored_password_hash.encode()):
+                    context.set_details("Invalid username or password.")
+                    context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+                    return db_service_pb2.TokenResponse(token="")
+                # Create a JWT token
+                # Create a JWT token within Flask app context
+                with app.app_context():
+                    access_token = create_access_token(identity=request.username)
+                    # print(access_token)
+                # Return the token
+                return db_service_pb2.TokenResponse(token=access_token)
+        except psycopg2.DatabaseError as e:
+            context.set_details(f"Database error: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return db_service_pb2.TokenResponse(token="")
+        finally:
+            if conn:
+                simple_pool.putconn(conn)
     def GetUser(self, request, context):
         conn = None
         try:
@@ -102,6 +141,28 @@ class DbServiceServicer(db_service_pb2_grpc.DBServiceServicer):
     #     context.set_details('Product not found')
     #     context.set_code(grpc.StatusCode.NOT_FOUND)
     #     return db_service_pb2.ProductResponse()
+
+    def GetProduct(self, request, context):
+        conn = None
+        try:
+            conn = simple_pool.getconn()
+            # print(request.product_id)
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM products WHERE id = %s;", (request.product_id,))
+                result = cursor.fetchone()
+                if result:
+                    return db_service_pb2.ProductResponse(
+                    id=result[0], name=result[1], description=result[2], category=result[3],
+                    price=result[4], slogan=result[5], stock=result[6])
+                else:
+                    context.set_details("Product not found")
+                    context.set_code(grpc.StatusCode.NOT_FOUND)
+        except psycopg2.DatabaseError as e:
+            context.set_details(f"Database error: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+        finally:
+            if conn:
+                simple_pool.putconn(conn)
 
     # Implement other methods similarly...
 
