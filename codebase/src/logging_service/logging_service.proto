@@ -1,3 +1,4 @@
+//logging_service.proto
 syntax = "proto3";
 
 service LoggingService {

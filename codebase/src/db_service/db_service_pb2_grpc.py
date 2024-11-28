@@ -60,6 +60,11 @@ class DBServiceStub(object):
                 request_serializer=db__service__pb2.UserRequest.SerializeToString,
                 response_deserializer=db__service__pb2.GenericResponse.FromString,
                 _registered_method=True)
+        self.UpdateUser = channel.unary_unary(
+                '/dbservice.DBService/UpdateUser',
+                request_serializer=db__service__pb2.UserUpdate.SerializeToString,
+                response_deserializer=db__service__pb2.UserResponse.FromString,
+                _registered_method=True)
         self.ListProducts = channel.unary_unary(
                 '/dbservice.DBService/ListProducts',
                 request_serializer=db__service__pb2.Empty.SerializeToString,
@@ -83,6 +88,11 @@ class DBServiceStub(object):
         self.GetOrder = channel.unary_unary(
                 '/dbservice.DBService/GetOrder',
                 request_serializer=db__service__pb2.OrderRequest.SerializeToString,
+                response_deserializer=db__service__pb2.OrderResponse.FromString,
+                _registered_method=True)
+        self.UpdateOrder = channel.unary_unary(
+                '/dbservice.DBService/UpdateOrder',
+                request_serializer=db__service__pb2.OrderUpdate.SerializeToString,
                 response_deserializer=db__service__pb2.OrderResponse.FromString,
                 _registered_method=True)
 
@@ -122,6 +132,12 @@ class DBServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def UpdateUser(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def ListProducts(self, request, context):
         """Product operations
         """
@@ -149,6 +165,12 @@ class DBServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetOrder(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateOrder(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -182,6 +204,11 @@ def add_DBServiceServicer_to_server(servicer, server):
                     request_deserializer=db__service__pb2.UserRequest.FromString,
                     response_serializer=db__service__pb2.GenericResponse.SerializeToString,
             ),
+            'UpdateUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateUser,
+                    request_deserializer=db__service__pb2.UserUpdate.FromString,
+                    response_serializer=db__service__pb2.UserResponse.SerializeToString,
+            ),
             'ListProducts': grpc.unary_unary_rpc_method_handler(
                     servicer.ListProducts,
                     request_deserializer=db__service__pb2.Empty.FromString,
@@ -205,6 +232,11 @@ def add_DBServiceServicer_to_server(servicer, server):
             'GetOrder': grpc.unary_unary_rpc_method_handler(
                     servicer.GetOrder,
                     request_deserializer=db__service__pb2.OrderRequest.FromString,
+                    response_serializer=db__service__pb2.OrderResponse.SerializeToString,
+            ),
+            'UpdateOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateOrder,
+                    request_deserializer=db__service__pb2.OrderUpdate.FromString,
                     response_serializer=db__service__pb2.OrderResponse.SerializeToString,
             ),
     }
@@ -355,6 +387,33 @@ class DBService(object):
             _registered_method=True)
 
     @staticmethod
+    def UpdateUser(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/dbservice.DBService/UpdateUser',
+            db__service__pb2.UserUpdate.SerializeToString,
+            db__service__pb2.UserResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def ListProducts(request,
             target,
             options=(),
@@ -478,6 +537,33 @@ class DBService(object):
             target,
             '/dbservice.DBService/GetOrder',
             db__service__pb2.OrderRequest.SerializeToString,
+            db__service__pb2.OrderResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateOrder(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/dbservice.DBService/UpdateOrder',
+            db__service__pb2.OrderUpdate.SerializeToString,
             db__service__pb2.OrderResponse.FromString,
             options,
             channel_credentials,

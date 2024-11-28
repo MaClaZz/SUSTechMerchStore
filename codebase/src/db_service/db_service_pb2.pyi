@@ -27,6 +27,18 @@ class RegisterRequest(_message.Message):
     password: str
     def __init__(self, sid: _Optional[str] = ..., username: _Optional[str] = ..., email: _Optional[str] = ..., password: _Optional[str] = ...) -> None: ...
 
+class UserUpdate(_message.Message):
+    __slots__ = ("user_id", "sid", "username", "email")
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    SID_FIELD_NUMBER: _ClassVar[int]
+    USERNAME_FIELD_NUMBER: _ClassVar[int]
+    EMAIL_FIELD_NUMBER: _ClassVar[int]
+    user_id: int
+    sid: str
+    username: str
+    email: str
+    def __init__(self, user_id: _Optional[int] = ..., sid: _Optional[str] = ..., username: _Optional[str] = ..., email: _Optional[str] = ...) -> None: ...
+
 class LoginRequest(_message.Message):
     __slots__ = ("username", "password")
     USERNAME_FIELD_NUMBER: _ClassVar[int]
@@ -124,3 +136,15 @@ class OrderResponse(_message.Message):
     quantity: int
     total_price: float
     def __init__(self, order_id: _Optional[int] = ..., user_id: _Optional[int] = ..., product_id: _Optional[int] = ..., quantity: _Optional[int] = ..., total_price: _Optional[float] = ...) -> None: ...
+
+class OrderUpdate(_message.Message):
+    __slots__ = ("order_id", "user_id", "product_id", "quantity")
+    ORDER_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    PRODUCT_ID_FIELD_NUMBER: _ClassVar[int]
+    QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    order_id: int
+    user_id: int
+    product_id: int
+    quantity: int
+    def __init__(self, order_id: _Optional[int] = ..., user_id: _Optional[int] = ..., product_id: _Optional[int] = ..., quantity: _Optional[int] = ...) -> None: ...

@@ -11,6 +11,8 @@ service DBService {
   rpc LoginUser  (LoginRequest) returns (TokenResponse);
   rpc GetUser (UserRequest) returns (UserResponse);
   rpc DeactivateUser (UserRequest) returns (GenericResponse);
+  rpc UpdateUser (UserUpdate) returns (UserResponse);
+
 
   // Product operations
   rpc ListProducts (Empty) returns (ProductListResponse);
@@ -20,6 +22,7 @@ service DBService {
   rpc PlaceOrder (PlaceOrderRequest) returns (GenericResponse);
   rpc CancelOrder (OrderRequest) returns (GenericResponse);
   rpc GetOrder (OrderRequest) returns (OrderResponse);
+  rpc UpdateOrder (OrderUpdate) returns (OrderResponse);
 }
 
 // Message definitions
@@ -34,6 +37,12 @@ message RegisterRequest {
   string username = 2;
   string email = 3;
   string password = 4;
+}
+message UserUpdate {
+  int32 user_id = 1;
+  string sid = 2;
+  string username = 3;
+  string email = 4;
 }
 
 message LoginRequest {
@@ -93,4 +102,10 @@ message OrderResponse {
   int32 product_id = 3;
   int32 quantity = 4;
   double total_price=5;
+}
+message OrderUpdate {
+  int32 order_id = 1;
+  int32 user_id = 2;
+  int32 product_id = 3;
+  int32 quantity = 4;
 }
