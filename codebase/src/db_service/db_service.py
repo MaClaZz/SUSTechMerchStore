@@ -4,9 +4,10 @@ from concurrent import futures
 import time
 # from models import db, Product  # Import your SQLAlchemy models
 import psycopg2
+from flask import Flask
 from psycopg2 import errors
 
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, JWTManager
 from psycopg2 import pool
 import os
 from pprint import pprint
@@ -14,7 +15,6 @@ from pprint import pprint
 # Import the generated classes
 import db_service_pb2
 import db_service_pb2_grpc
-from codebase.src.api_service.ClientStub import app
 
 # PostgreSQL connection pooling
 db_user = os.getenv("DB_USER", "dncc")
@@ -22,11 +22,19 @@ db_password = os.getenv("DB_PASSWORD", "dncc")
 db_host = os.getenv("DB_HOST", "localhost")
 db_port = os.getenv("DB_PORT", "2222")
 db_name = os.getenv("DB_NAME", "goodsstore")
-
+app = Flask(__name__)
+# JWT Configuration
+app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'  # Use a strong secret key
+jwt = JWTManager(app)
 # Create a SimpleConnectionPool for a single-threaded application
 simple_pool = psycopg2.pool.SimpleConnectionPool(
     minconn=1,
     maxconn=10,
+    # user=dncc,
+    # password=dncc,
+    # host=localhost,
+    # port=2222,
+    # database=goodsstore
     user=db_user,
     password=db_password,
     host=db_host,

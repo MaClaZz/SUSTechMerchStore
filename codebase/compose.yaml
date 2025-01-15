@@ -42,8 +42,8 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"  # For internal Docker use
-      - "9093:9093"  # For external access
+      - "2222:9092"  # For internal Docker use
+      - "2222:9093"  # For external access
 
   kafka-topic-creator:
     image: confluentinc/cp-kafka:7.7.1
@@ -54,5 +54,106 @@ services:
       /bin/kafka-topics --create --topic log-channel --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1;
       "
 
+  db_service:
+#    image: db_service_image
+    build:
+      context: ./src/db_service
+    container_name: db_service
+#    hostname: db_service
+    ports:
+      - "2222:50051"  # Expose gRPC DB port
+    environment:
+      DB_USER: dncc
+      DB_PASSWORD: dncc
+      DB_NAME: goodsstore
+      DB_HOST: postgres
+      DB_PORT: 2222
+    depends_on:
+      - postgres
+#    networks:
+#      - app_network
+
+  logging_service:
+#    image: local_publisher  # Path to the Dockerfile for the gRPC Logging service
+    build:
+      context: ./src/logging_service
+    container_name: logging_service
+    ports:
+      - "2222:50052"  # Expose gRPC Logging port
+    depends_on:
+      - zookeeper
+      - kafka
+      - kafka-topic-creator
+#    networks:
+#      - app_network
+
+  client:
+#    image: client_stub
+    build:
+      context: ./src/api_service
+    container_name: api_service
+    ports:
+      - "2222:5000"  # Expose Flask app port
+    environment:
+#      DB_USER: dncc
+#      DB_PASSWORD: dncc
+#      DB_NAME: goodsstore
+#      DB_HOST: postgres
+#      DB_PORT: 5432
+#      FLASK_APP: ClientStub.py
+#      FLASK_ENV: test
+#      POSTGRES_USER: ${POSTGRES_USER}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#      POSTGRES_DB: ${POSTGRES_DB}
+#      POSTGRES_HOST: postgres
+#      POSTGRES_PORT: 5432
+#      FLASK_RUN_PORT: 5000
+      - JWT_SECRET_KEY=your_jwt_secret_key  # Replace with your secret key
+    depends_on:
+      - postgres
+      - kafka
+      - db_service
+      - logging_service
+#    networks:
+#      - app_network
+  # Flask servers
+  flask_server1:
+    # https://docs.docker.com/reference/compose-file/build/
+    build:
+      context: ./src/api_service
+    environment:
+      FLASK_PORT: 5000
+      SERVER_NAME: "Flask Server 1"
+    depends_on:
+      - client
+  flask_server2:
+    build:
+      context: ./src/api_service
+    environment:
+      FLASK_PORT: 5000
+      SERVER_NAME: "Flask Server 2"
+    depends_on:
+      - client
+  flask_server3:
+    build:
+      context: ./src/api_service
+
+    environment:
+      FLASK_PORT: 5000
+      SERVER_NAME: "Flask Server 3"
+    depends_on:
+      - client
+  # Nginx for load balancing
+  nginx:
+    image: nginx:1.27
+    volumes:
+      # https://docs.docker.com/reference/compose-file/services/#short-syntax-5
+      - ./src/api_service/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "2222:80"
+    depends_on:
+      - flask_server1
+      - flask_server2
+      - flask_server3
 volumes:
   pg_data:  # A placeholder volume without any configuration

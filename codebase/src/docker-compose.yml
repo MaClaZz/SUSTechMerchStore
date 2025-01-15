@@ -1,0 +1,35 @@
+version: '3.8'  # Docker Compose version
+
+services:
+  api_service:
+    build: api_service  # Path to the Dockerfile for the client
+    container_name: api_service
+    ports:
+      - "5000:5000"  # Expose Flask app port
+    environment:
+      - JWT_SECRET_KEY=your_jwt_secret_key  # Replace with your secret key
+    depends_on:
+      - db_service
+      - logging_service
+    networks:
+      - app_network
+
+  db_service:
+    build: db_service  # Path to the Dockerfile for the gRPC DB service
+    container_name: db_service
+    ports:
+      - "50051:50051"  # Expose gRPC DB port
+    networks:
+      - app_network
+
+  logging_service:
+    build: logging_service  # Path to the Dockerfile for the gRPC Logging service
+    container_name: logging_service
+    ports:
+      - "50052:50052"  # Expose gRPC Logging port
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge  # Creates an isolated network for services

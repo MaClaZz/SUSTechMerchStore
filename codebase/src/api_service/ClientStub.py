@@ -22,7 +22,7 @@ import logging_service_pb2
 import logging_service_pb2_grpc
 
 # Connect to the gRPC LoggingService
-log_channel = grpc.insecure_channel('localhost:50052')  # Replace with actual host:port
+log_channel = grpc.insecure_channel('2222:50052')  # Replace with actual host:port
 log_stub = logging_service_pb2_grpc.LoggingServiceStub(log_channel)
 
 # Thread-safe queue to hold log messages
@@ -68,7 +68,7 @@ def log_response(response):
     return response
 
 # Establish a connection to the gRPC server
-channel = grpc.insecure_channel('localhost:50051')
+channel = grpc.insecure_channel('2222:50051')
 stub = db_service_pb2_grpc.DBServiceStub(channel)
 
 # Greeting Route
